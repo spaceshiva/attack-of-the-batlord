@@ -1,0 +1,6 @@
+#devid=ricardozanini
+#devtitle=Ricardo Zanini
+#gameid=aottl
+#gametitle=Attack Of The Timelord
+#version=0.1
+#icon=metadata/icon.png

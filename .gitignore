@@ -1,0 +1,9 @@
+exceptions
+logs
+tmp
+console_history.txt
+ctags-emacs
+ctags-vim
+dragonruby*
+font.ttf
+console-logo.png
