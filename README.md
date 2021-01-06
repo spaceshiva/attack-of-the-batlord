@@ -1,6 +1,6 @@
 ## References
 
-- [Steering Behaviors For Autonomous Characters](http://www.red3d.com/cwr/steer/gdc99/) (Reynolds, Craig W.)
+- Reynolds, Craig W. (1999). [Steering Behaviors For Autonomous Characters](http://www.red3d.com/cwr/steer/gdc99/)
 
 ## Credits
 

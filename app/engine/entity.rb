@@ -1,5 +1,3 @@
-# possible directions for an entity to move
-DIRECTIONS=[:up, :down, :left, :right, :up_left, :up_right, :down_left, :down_right]
 # screen bounds
 BOUNDS={:top => 720, :right => 1280, :bottom => 0, :left => 0}
 
@@ -89,17 +87,6 @@ end
 class MoveableEntity < Entity
   attr_accessor :direction
 
-  DIR_CALC={
-    :up => [0, 1],
-    :down => [0, -1],
-    :left => [-1, 0],
-    :right => [1, 0],
-    :up_right => [1, 1],
-    :up_left => [-1, 1],
-    :down_right => [1, -1],
-    :down_left => [-1, -1]
-  }
-
   def serialize
     { sprite: @sprite, direction: @direction }
   end
@@ -109,11 +96,15 @@ class MoveableEntity < Entity
   end
 
   def seek(target)
-    desired_vel = Vectors::normalize(Vectors::multiply_n(Vectors::subtract(self.position, target), 1)) #1 -> max_speed
-    steering = Vectors::subtract(desired_vel, [1, 1])
+    desired_vel = Vectors::normalize(Vectors::multiply_n(Vectors::subtract(self.position, target), 3)) #1 -> max_speed
+    steering = Vectors::subtract(desired_vel, [3, 3])
     self.sprite.x += desired_vel[0] * steering[0]
     self.sprite.y += desired_vel[1] * steering[1]
     self.position = [self.sprite.x, self.sprite.y]
+  end
+
+  def pursuit(target)
+
   end
 end
 
@@ -130,7 +121,7 @@ class CompositeEntity < MoveableEntity
   def serialize
     { entities: @entities }
   end
-  
+
   def animate frames_count
     @entities.each { |e| e.animate(frames_count) }
   end
@@ -149,10 +140,6 @@ class CompositeEntity < MoveableEntity
 
   def h
     self.entities[0].h
-  end
-
-  def direction
-    self.entities[0].direction
   end
 
   def render outputs
