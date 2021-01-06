@@ -33,60 +33,14 @@ class Sprite < Inspectable
   end
 end
 
-# An entity tha can move
-class MoveableEntity < Inspectable
-  attr_accessor :sprite, :direction
-
-  DIR_CALC={
-    :up => [0, 1],
-    :down => [0, -1],
-    :left => [-1, 0],
-    :right => [1, 0],
-    :up_right => [1, 1],
-    :up_left => [-1, 1],
-    :down_right => [1, -1],
-    :down_left => [-1, -1]
-  }
-
-  def serialize
-    { sprite: @sprite, direction: @direction }
-  end
-
-  def initialize sprite
-    self.sprite = sprite
-  end
-
-  def moving_right?
-    self.direction == :right || self.direction == :up_right || self.direction == :down_right
-  end
-
-  def moving_left?
-    self.direction == :left || self.direction == :up_left || self.direction == :down_left
-  end
-
-  def moving_up?
-    self.direction == :up || self.direction == :up_left || self.direction == :up_right
-  end
-
-  def moving_down?
-    self.direction == :down || self.direction == :down_right || self.direction == :down_left
-  end
-
-  # moves the sprite to the given direction and speed
-  def move d, speed
-    self.direction = d
-    self.sprite.x += DIR_CALC[d][0] * speed
-    self.sprite.y += DIR_CALC[d][1] * speed
-  end
-end
-
 # Base class for all Entities. An entity is not a sprite, but something we can move, animate, and interact within the game.
-class Entity < MoveableEntity
-  attr_accessor :animation_frames_interval
+class Entity < Inspectable
+  attr_accessor :animation_frames_interval, :sprite, :position
 
   def initialize sprite, anim_frames_interval
-    super(sprite)
+    self.sprite = sprite
     self.animation_frames_interval = anim_frames_interval
+    self.position = [self.sprite.x, self.sprite.y]
     @last_frames_count = 0
     @actual_frame = 0
   end
@@ -131,6 +85,38 @@ class Entity < MoveableEntity
   end
 end
 
+# An entity tha can move
+class MoveableEntity < Entity
+  attr_accessor :direction
+
+  DIR_CALC={
+    :up => [0, 1],
+    :down => [0, -1],
+    :left => [-1, 0],
+    :right => [1, 0],
+    :up_right => [1, 1],
+    :up_left => [-1, 1],
+    :down_right => [1, -1],
+    :down_left => [-1, -1]
+  }
+
+  def serialize
+    { sprite: @sprite, direction: @direction }
+  end
+
+  def initialize sprite, anim_frames_interval
+    super(sprite, anim_frames_interval)
+  end
+
+  def seek(target)
+    desired_vel = Vectors::normalize(Vectors::multiply_n(Vectors::subtract(self.position, target), 1)) #1 -> max_speed
+    steering = Vectors::subtract(desired_vel, [1, 1])
+    self.sprite.x += desired_vel[0] * steering[0]
+    self.sprite.y += desired_vel[1] * steering[1]
+    self.position = [self.sprite.x, self.sprite.y]
+  end
+end
+
 # Base class for composed entities. For example: you wish to control a group of entities to work on a similar manner.
 # By default, x, y, w and h refers to the first entity within the composition. 
 # Override these methods if needed.
@@ -144,11 +130,7 @@ class CompositeEntity < MoveableEntity
   def serialize
     { entities: @entities }
   end
-
-  def move d, speed
-    @entities.each { |e| e.move(d, speed) }
-  end
-
+  
   def animate frames_count
     @entities.each { |e| e.animate(frames_count) }
   end

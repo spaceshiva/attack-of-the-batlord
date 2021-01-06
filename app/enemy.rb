@@ -15,7 +15,7 @@ class BatSprite < Sprite
     end
 end
 
-class Bat < Entity
+class Bat < MoveableEntity
     ANIMATION_INTERVAL=12
 
     def initialize x, y
