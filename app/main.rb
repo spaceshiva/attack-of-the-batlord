@@ -4,10 +4,12 @@ require 'app/enemy.rb'
 
 def defaults args
   args.state.enemies ||= [
-    Bat.new(0, 0), Bat.new(1280 - BatSprite::W, 0), Bat.new(0, 720 - BatSprite::H), 
-    Bat.new(1280 - BatSprite::W, 720 - BatSprite::H), 
-    Bat.new(0, 360), 
-    Bat.new(1280 - BatSprite::W, 360)]
+    Bat.new(0, 0)
+  #  Bat.new(0, 0), Bat.new(1280 - BatSprite::W, 0), Bat.new(0, 720 - BatSprite::H), 
+  #  Bat.new(1280 - BatSprite::W, 720 - BatSprite::H), 
+  #  Bat.new(0, 360), 
+  #  Bat.new(1280 - BatSprite::W, 360)
+  ]
 end
 
 def tick args
@@ -17,7 +19,9 @@ def tick args
 end
 
 def calc args
-  args.state.enemies.each { |e| e.seek([620, 340]) }
+  args.state.enemies.each do |e|
+    e.arrival([640, 360])
+  end
   #args.state.enemy.spawn(args.state.tick_count)
 end
 

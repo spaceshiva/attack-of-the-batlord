@@ -20,10 +20,19 @@ module Vectors
     end
 
     def Vectors.normalize(v)
-        divide_n(v, mag(v))
+        norm = divide_n(v, mag(v))
+        norm[0] = 0 if norm[0].nan?
+        norm[1] = 0 if norm[1].nan?
+        norm
     end
 
     def Vectors.mag(v)
         Math.sqrt(v[0] ** 2 + v[1] ** 2)
+    end
+
+    def Vectors.truncate(v, max)
+        i = max / mag(v)
+        i = i < 1.0 ? i : 1.0
+        multiply_n(v, i)
     end
 end

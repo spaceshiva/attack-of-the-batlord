@@ -20,9 +20,9 @@ class Bat < MoveableEntity
 
     def initialize x, y
         super(BatSprite.new(x, y), ANIMATION_INTERVAL)
-        self.mass = 1
-        self.max_force = 2
-        self.max_speed = 3
+        self.mass = 300
+        self.max_force = 5
+        self.max_speed = 5
     end
 end
 

@@ -85,7 +85,9 @@ end
 
 # An entity tha can move
 class MoveableEntity < Entity
-  attr_accessor :steering, :velocity, :mass, :max_force, :max_speed
+  attr_accessor :steering, :velocity, :mass, :max_force, :max_speed, :slowing_distance
+  
+  SLOWING_DISTANCE=200
 
   def serialize
     { sprite: @sprite, steering: @steering, velocity: @velocity, mass: @mass, max_force: @max_force, max_speed: @max_speed }
@@ -94,28 +96,40 @@ class MoveableEntity < Entity
   def initialize sprite, anim_frames_interval
     super(sprite, anim_frames_interval)
     self.velocity = [0, 0]
+    self.slowing_distance = SLOWING_DISTANCE
   end
 
   def seek(target)
-    self.velocity = compute_velocity()
-    desired_velocity = Vectors::normalize(Vectors::multiply_n(Vectors::subtract(self.position, target), self.max_speed))
-    self.steering = Vectors::subtract(desired_velocity, self.velocity)
-    self.velocity = desired_velocity
-    self.sprite.x += self.velocity[0] * self.steering[0]
-    self.sprite.y += self.velocity[1] * self.steering[1]
-    self.position = [self.sprite.x, self.sprite.y]
+    desired_velocity = Vectors::multiply_n(Vectors::normalize(Vectors::subtract(target, self.position)), self.max_speed)
+    self.steering = Vectors::truncate(Vectors::subtract(desired_velocity, self.velocity), self.max_force)
+    self.steering = Vectors::divide_n(self.steering, self.mass)
+    self.move()
   end
 
-  def compute_velocity
-    acc = Vectors::divide_n([self.max_force, self.max_force], self.mass)
-    vel = Vectors::add(self.velocity, acc)
-    if vel[0] > self.max_speed
-      vel[0] = self.max_speed
+  def flee(target)
+    desired_velocity = Vectors::multiply_n(Vectors::normalize(Vectors::subtract(self.position, target)), self.max_speed)
+    self.steering = Vectors::truncate(Vectors::subtract(desired_velocity, self.velocity), self.max_force)
+    self.steering = Vectors::divide_n(self.steering, self.mass)
+    self.move()
+  end
+
+  def arrival(target, slowing_distance=SLOWING_DISTANCE)
+    desired_velocity = Vectors::subtract(target, self.position)
+    distance = Vectors::mag(desired_velocity)
+    if distance < self.slowing_distance
+      desired_velocity = Vectors::multiply_n(Vectors::multiply_n(Vectors::normalize(desired_velocity), self.max_speed), (distance / self.slowing_distance))
+    else
+      desired_velocity = Vectors::multiply_n(Vectors::normalize(desired_velocity), self.max_speed)
     end
-    if vel[1] > self.max_speed
-      vel[1] = self.max_speed
-    end
-    vel
+    self.steering = Vectors::subtract(desired_velocity, self.velocity)
+    self.move()
+  end
+
+  def move()
+    self.velocity = Vectors::truncate(Vectors::add(self.velocity, self.steering), self.max_speed)
+    self.sprite.x += self.velocity[0] 
+    self.sprite.y += self.velocity[1]
+    self.position = [self.sprite.x, self.sprite.y]
   end
 end
 
