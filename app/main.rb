@@ -3,7 +3,11 @@ require 'app/engine/entity.rb'
 require 'app/enemy.rb'
 
 def defaults args
-  args.state.enemies ||= [Bat.new(0, 0), Bat.new(1240, 0), Bat.new(0, 720), Bat.new(1240, 720)]
+  args.state.enemies ||= [
+    Bat.new(0, 0), Bat.new(1280 - BatSprite::W, 0), Bat.new(0, 720 - BatSprite::H), 
+    Bat.new(1280 - BatSprite::W, 720 - BatSprite::H), 
+    Bat.new(0, 360), 
+    Bat.new(1280 - BatSprite::W, 360)]
 end
 
 def tick args
@@ -24,9 +28,9 @@ def render args
     e.animate(args.state.tick_count)
     e.render(args.outputs)
     args.outputs.labels << [10,
-                              30 * i, 
-                              "x: %d, y: %d" % [e.x, e.y],
-                              255, 255, 0]
+      30 * i, 
+      "x: %d, y: %d, v: %s, s: %s" % [e.x, e.y, e.velocity, e.steering],
+      255, 255, 0]
     i += 1
   end
   

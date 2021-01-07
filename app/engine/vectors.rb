@@ -11,6 +11,10 @@ module Vectors
         v1.zip(v2).map{ |x, y| x * y }
     end
 
+    def Vectors.add(v1, v2)
+        v1.zip(v2).map{ |x, y| x + y }
+    end
+
     def Vectors.divide_n(v1, n)
         v1.map { |v| v / n }
     end

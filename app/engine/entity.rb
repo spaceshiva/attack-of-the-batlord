@@ -85,26 +85,37 @@ end
 
 # An entity tha can move
 class MoveableEntity < Entity
-  attr_accessor :direction
+  attr_accessor :steering, :velocity, :mass, :max_force, :max_speed
 
   def serialize
-    { sprite: @sprite, direction: @direction }
+    { sprite: @sprite, steering: @steering, velocity: @velocity, mass: @mass, max_force: @max_force, max_speed: @max_speed }
   end
 
   def initialize sprite, anim_frames_interval
     super(sprite, anim_frames_interval)
+    self.velocity = [0, 0]
   end
 
   def seek(target)
-    desired_vel = Vectors::normalize(Vectors::multiply_n(Vectors::subtract(self.position, target), 3)) #1 -> max_speed
-    steering = Vectors::subtract(desired_vel, [3, 3])
-    self.sprite.x += desired_vel[0] * steering[0]
-    self.sprite.y += desired_vel[1] * steering[1]
+    self.velocity = compute_velocity()
+    desired_velocity = Vectors::normalize(Vectors::multiply_n(Vectors::subtract(self.position, target), self.max_speed))
+    self.steering = Vectors::subtract(desired_velocity, self.velocity)
+    self.velocity = desired_velocity
+    self.sprite.x += self.velocity[0] * self.steering[0]
+    self.sprite.y += self.velocity[1] * self.steering[1]
     self.position = [self.sprite.x, self.sprite.y]
   end
 
-  def pursuit(target)
-
+  def compute_velocity
+    acc = Vectors::divide_n([self.max_force, self.max_force], self.mass)
+    vel = Vectors::add(self.velocity, acc)
+    if vel[0] > self.max_speed
+      vel[0] = self.max_speed
+    end
+    if vel[1] > self.max_speed
+      vel[1] = self.max_speed
+    end
+    vel
   end
 end
 
