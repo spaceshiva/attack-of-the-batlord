@@ -22,7 +22,7 @@ class Bat < MoveableEntity
         super(BatSprite.new(x, y), ANIMATION_INTERVAL)
         self.mass = 300
         self.max_force = 5
-        self.max_speed = 5
+        self.max_speed = 1
     end
 end
 

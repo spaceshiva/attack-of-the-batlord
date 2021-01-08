@@ -85,9 +85,13 @@ end
 
 # An entity tha can move
 class MoveableEntity < Entity
-  attr_accessor :steering, :velocity, :mass, :max_force, :max_speed, :slowing_distance
+  attr_accessor :steering, :velocity, :mass, :max_force, :max_speed, :slowing_distance, :circle_distance, :circle_radius, :wander_angle
   
   SLOWING_DISTANCE=200
+  #wander
+  CIRCLE_DISTANCE=10
+  CIRCLE_RADIUS=50
+  ANGLE_CHANGE=10
 
   def serialize
     { sprite: @sprite, steering: @steering, velocity: @velocity, mass: @mass, max_force: @max_force, max_speed: @max_speed }
@@ -96,33 +100,54 @@ class MoveableEntity < Entity
   def initialize sprite, anim_frames_interval
     super(sprite, anim_frames_interval)
     self.velocity = [0, 0]
+    # arrival
     self.slowing_distance = SLOWING_DISTANCE
+    # wander
+    self.circle_distance = CIRCLE_DISTANCE
+    self.circle_radius = CIRCLE_RADIUS # this one can be relative to the entity size
+    self.wander_angle = 5
   end
 
   def seek(target)
-    desired_velocity = Vectors::multiply_n(Vectors::normalize(Vectors::subtract(target, self.position)), self.max_speed)
+    desired_velocity = Vectors::multiply_by(Vectors::normalize(Vectors::subtract(target, self.position)), self.max_speed)
     self.steering = Vectors::truncate(Vectors::subtract(desired_velocity, self.velocity), self.max_force)
-    self.steering = Vectors::divide_n(self.steering, self.mass)
+    self.steering = Vectors::divide_by(self.steering, self.mass)
     self.move()
   end
 
   def flee(target)
-    desired_velocity = Vectors::multiply_n(Vectors::normalize(Vectors::subtract(self.position, target)), self.max_speed)
+    desired_velocity = Vectors::multiply_by(Vectors::normalize(Vectors::subtract(self.position, target)), self.max_speed)
     self.steering = Vectors::truncate(Vectors::subtract(desired_velocity, self.velocity), self.max_force)
-    self.steering = Vectors::divide_n(self.steering, self.mass)
+    self.steering = Vectors::divide_by(self.steering, self.mass)
     self.move()
   end
 
   def arrival(target, slowing_distance=SLOWING_DISTANCE)
     desired_velocity = Vectors::subtract(target, self.position)
     distance = Vectors::mag(desired_velocity)
-    if distance < self.slowing_distance
-      desired_velocity = Vectors::multiply_n(Vectors::multiply_n(Vectors::normalize(desired_velocity), self.max_speed), (distance / self.slowing_distance))
+    # TODO: we need to consider mass once we are in the distance radius
+    if distance <= self.slowing_distance
+      desired_velocity = Vectors::multiply_by(Vectors::multiply_by(Vectors::normalize(desired_velocity), self.max_speed), (distance / self.slowing_distance))
+      self.steering = Vectors::truncate(Vectors::subtract(desired_velocity, self.velocity), self.max_force)
+      self.move()
     else
-      desired_velocity = Vectors::multiply_n(Vectors::normalize(desired_velocity), self.max_speed)
+      self.seek(target)
     end
-    self.steering = Vectors::subtract(desired_velocity, self.velocity)
-    self.move()
+  end
+
+  # see: https://gamedevelopment.tutsplus.com/tutorials/understanding-steering-behaviors-wander--gamedev-1624
+  def wander()
+    # compute circle's position according to entity's position
+    circle_center = Vectors::multiply_by(Vectors::normalize(self.position), self.circle_distance)
+    displacement = Vectors::multiply_by([-1, 1], self.circle_radius)
+    # set_angle
+    len = Vectors::mag(displacement)
+    displacement[0] = Math.cos(self.wander_angle) * len
+    displacement[1] = Math.sin(self.wander_angle) * len
+    self.wander_angle += rand * ANGLE_CHANGE - ANGLE_CHANGE * 0.5
+    self.steering = Vectors::add(circle_center, displacement)
+    self.steering = Vectors::divide_by(self.steering, self.mass)
+    self.move() 
   end
 
   def move()

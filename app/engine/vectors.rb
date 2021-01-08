@@ -3,7 +3,7 @@ module Vectors
         v1.map.with_index { |v, i| v-v2[i]}
     end
 
-    def Vectors.multiply_n(v1, n)
+    def Vectors.multiply_by(v1, n)
         v1.map { |v| v * n }
     end
 
@@ -15,12 +15,12 @@ module Vectors
         v1.zip(v2).map{ |x, y| x + y }
     end
 
-    def Vectors.divide_n(v1, n)
+    def Vectors.divide_by(v1, n)
         v1.map { |v| v / n }
     end
 
     def Vectors.normalize(v)
-        norm = divide_n(v, mag(v))
+        norm = divide_by(v, mag(v))
         norm[0] = 0 if norm[0].nan?
         norm[1] = 0 if norm[1].nan?
         norm
