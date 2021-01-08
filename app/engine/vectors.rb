@@ -33,6 +33,6 @@ module Vectors
     def Vectors.truncate(v, max)
         i = max / mag(v)
         i = i < 1.0 ? i : 1.0
-        multiply_n(v, i)
+        multiply_by(v, i)
     end
 end
